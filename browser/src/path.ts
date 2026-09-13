@@ -23,13 +23,19 @@ export function basename(path: string): string {
 }
 
 export function dirname(path: string): string {
-	const match = /[/\\][^/\\]*$/.exec(path);
-	if (!match) return '.';
+	const trimmed = path.replace(TRAILING_SLASHES_REGEX, '');
+	const match = /[/\\][^/\\]*$/.exec(trimmed);
+	if (match) {
+		const directory = trimmed.slice(0, -match[0].length);
 
-	const directory = path.slice(0, -match[0].length);
+		// If `directory` is the empty string, we're at root.
+		return directory || '/';
+	}
 
-	// If `directory` is the empty string, we're at root.
-	return directory || '/';
+	if (trimmed === '') return path ? '/' : '.';
+	// A drive root like "C:/" keeps the drive as its directory.
+	if (path !== trimmed && /^[A-Za-z]:$/.test(trimmed)) return trimmed;
+	return '.';
 }
 
 export function extname(path: string): string {
